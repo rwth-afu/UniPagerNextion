@@ -1,7 +1,7 @@
-# RustPagerNextion
-Nextion Interface for RustPager
+# UniPagerNextion
+Nextion Interface for UniPager
 Basic Idea:
-A programm to be written here connects to the websocket server of RustPager to get status information, like on the website supplied with the RustPager. Possible solution: https://github.com/eidheim/Simple-WebSocket-Server 
+A programm to be written here connects to the websocket server of UniPager to get status information, like on the website supplied with the UniPager. Possible solution: https://github.com/eidheim/Simple-WebSocket-Server 
 
 On the other side, it opens a configurable serial port (like /dev/ttyUSBx) and talks to Nextion display to show the data as on the website. As the onboard UART of the RasPi is already used for the C9000 Pager, a USB-->3,3V TLL converter like http://www.ebay.de/itm/311419365525 should be used.
 
