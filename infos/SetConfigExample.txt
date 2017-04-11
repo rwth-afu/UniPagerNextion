@@ -1,0 +1,40 @@
+{
+	"SetConfig":
+	{
+		"master":
+		{
+			"server":"dapnet.afu.rwth-aachen.de",
+"port":43434,
+"call":"db0sdapcb",
+"auth":"password"},
+"transmitter":"C9000",
+"ptt":
+{
+"method":"Gpio",
+"inverted":false,
+"gpio_pin":0,
+"serial_port":"/dev/ttyS0"
+},
+"raspager":
+{"freq":439987500,
+"freq_corr":0,
+"pa_output_level":30}
+,
+"c9000":
+{
+"baudrate":38400
+},
+"audio":
+{
+"device":"default",
+"level":127,
+"inverted":false,
+"tx_delay":0
+}
+,
+"rfm69":
+{
+"port":"/dev/ttyUSB0"
+}
+}
+}
