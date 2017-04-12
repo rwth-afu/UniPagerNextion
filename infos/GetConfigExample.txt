@@ -1,14 +1,14 @@
 {
-  "SetConfig":
+ "Config":
   {
     "master":
     {
       "server":"dapnet.afu.rwth-aachen.de",
       "port":43434,
       "call":"db0sdapcb",
-      "auth":"password"
+      "auth":"Password"
     },
-    "transmitter":"C9000",
+    "transmitter":"Audio",
     "ptt":
     {
       "method":"Gpio",
@@ -39,3 +39,15 @@
     }
   }
 }
+
+-----
+
+  print "Gpio"
+}
+if(ConfigAudioPTT.AudioPTTType.val==1)
+{
+  print "SerialDtr"
+}
+if(ConfigAudioPTT.AudioPTTType.val==2)
+{
+  print "SerialRts"

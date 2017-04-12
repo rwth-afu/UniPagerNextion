@@ -108,9 +108,9 @@ def handle_config_raspager(config_raspager):
 
   print(config_raspager)
 
-  Nextion_Write('ConfigRaspV1.nFrequency.val=' + str(config_raspager['freq']))
-  Nextion_Write('ConfigRaspV1.nFrequencyCorr.val=' + str(config_raspager['freq_corr']))
-  Nextion_Write('ConfigRaspV1.nPAOutput.val=' + str(config_raspager['pa_output_level']))
+  Nextion_Write('ConfigRasp.nFrequency.val=' + str(config_raspager['freq']))
+  Nextion_Write('ConfigRasp.nFrequencyCorr.val=' + str(config_raspager['freq_corr']))
+  Nextion_Write('ConfigRasp.nPAOutput.val=' + str(config_raspager['pa_output_level']))
 
 
 def handle_config_rfm69(config_rfm69):
