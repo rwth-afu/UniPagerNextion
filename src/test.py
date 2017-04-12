@@ -171,59 +171,60 @@ def on_message(ws, message):
     status = parsed_json['Status']
     handle_status(status)
   except KeyError:
-    print("Other message, ignoring")
+    pass
 
 
   try:
     version = parsed_json['Version']
     handle_version(version)
   except KeyError:
-    print("Other message, ignoring")
+    pass
 
 
   try:
     config_master = parsed_json['Config']['master']
     handle_config_master(config_master)
   except KeyError:
-    print("Other message, ignoring")
+    pass
 
 
   try:
     config_transmitter = parsed_json['Config']['transmitter']
     handle_config_transmitter(config_transmitter)
   except KeyError:
-    print("Other message, ignoring")
+    pass
 
 
   try:
     config_raspager = parsed_json['Config']['raspager']
     handle_config_raspager(config_raspager)
   except KeyError:
-    print("Other message, ignoring")
+    pass
 
   try:
     config_rfm69 = parsed_json['Config']['rfm69']
     handle_config_rfm69(config_rfm69)
   except KeyError:
-    print("Other message, ignoring")
+    pass
 
 #  try:
 #    config_c9000 = parsed_json['Config']['c9000']
 #    handle_config_c9000(config_c9000)
 #  except KeyError:
-#    print("Other message, ignoring")
+#    pass
+
 
   try:
     config_audio = parsed_json['Config']['audio']
     handle_config_audio(config_audio)
   except KeyError:
-    print("Other message, ignoring")
+    pass
 
   try:
     config_ptt = parsed_json['Config']['ptt']
     handle_config_ptt(config_ptt)
   except KeyError:
-    print("Other message, ignoring")
+    pass
 
 
 
