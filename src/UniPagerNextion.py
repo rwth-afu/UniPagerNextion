@@ -14,6 +14,9 @@ import argparse
 import signal
 
 DEBUG = False
+def debug(string):
+  if DEBUG:
+    print(string)
 
 def Nextion_Write(NextComm):
 #    print(NextComm)
@@ -33,7 +36,7 @@ def read_from_port(ser):
       handle_data(data_str)
 
 def handle_data(data):
-  print("DataHandler\n")
+  debug("DataHandler\n")
 #  print(data)
 #  print " ".join(hex(ord(n)) for n in data)
   data = data.replace(b'\x1d',b'\x0a')
@@ -68,12 +71,12 @@ def handle_status(status):
 
 
 def handle_version(version):
-  print('Status.tVersionUniP.txt=' + version)
+  debug('Status.tVersionUniP.txt=' + version)
   Nextion_Write('Status.tVersionUniP.txt="' + str(version) + '"')
 
 def handle_config_master(config_master):
 
-  print('Handle Master Config')
+  debug('Handle Master Config')
   Nextion_Write('Status.TMaster.txt="' + config_master['server'] + '"')
   Nextion_Write('Status.NPort.val=' + str(config_master['port']))
   Nextion_Write('Status.TCallsign.txt="' + config_master['call'] + '"')
@@ -86,9 +89,9 @@ def handle_config_master(config_master):
 
 
 def handle_config_transmitter(config_transmitter):
-  print('Handle Transmitter Config')
+  debug('Handle Transmitter Config')
 
-  print(config_transmitter)
+  debug(config_transmitter)
 
   if (config_transmitter=='Dummy'):
     Nextion_Write('Status.PagerType.val=0')
@@ -105,7 +108,7 @@ def handle_config_transmitter(config_transmitter):
 
 
 def handle_config_raspager(config_raspager):
-  print('Handle Raspager Config')
+  debug('Handle Raspager Config')
 
   print(config_raspager)
 
@@ -164,11 +167,8 @@ def handle_config_ptt(config_ptt):
     Nextion_Write('ConfigAudioPTT.RadioRTS.val=1')
 
 def handle_log(log):
-  print("Hier ist ein Loginhalt angekommen")
-  print(log)
-  message=log[1]
-
-  print(message['Received Message']['data']);
+  debug("Hier ist ein Loginhalt angekommen")
+  debug(log[1])
 
 def on_message(ws, message):
 
