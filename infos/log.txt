@@ -1,0 +1,17 @@
+{
+"Log":
+[
+  3,
+  "Received Message
+  {
+    id: 0,
+	mtype: AlphaNum,
+	speed: Baud(1200),
+	addr: 12344,
+	func: AlphaNum,
+	data: \"sfdsdfsd\"
+  }"
+]
+}
+
+Received Message { id: 133, mtype: Numeric, speed: Baud(1200), addr: 2504, func: Numeric, data: "184700 190417" }
