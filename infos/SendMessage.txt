@@ -1,7 +1,1 @@
-{
-  "SendMessage":
-  {
-    "addr":48159,
-    "data":"sdfsdf"
-  }
-}
+{"SendMessage":{"addr":48159,"data":"sdfsdf"}}
