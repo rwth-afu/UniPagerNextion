@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import websocket
 import json
 import time
@@ -8,40 +10,17 @@ import sys
 import threading
 import io
 import struct
+import argparse
+import signal
 
-WebSocketURL = "ws://localhost:8055/"
-
-NextionPort = "/dev/ttyUSB0"
-NextionBaud = 115200
-
-
-connected  = False
-serial_port = serial.Serial(NextionPort, NextionBaud, timeout=None)
-
-
-
-def handle_data(data):
-  print("DataHandler\n")
-#  print(data)
-#  print " ".join(hex(ord(n)) for n in data)
-#  print("  ")
-  data = data.replace(b'\x1d',b'\x0a')
-  try:
-    start = data.index(b'\x02')
-  except ValueError:
-    start = -1
-  if (start != -1):
-    start = start + 1
-    data = data[start:]
-    data = data.decode(encoding='ASCII')
-    ws.send(data)
+DEBUG = False
 
 def Nextion_Write(NextComm):
 #    print(NextComm)
-    serial_port.write(NextComm)
-    serial_port.write(chr(255))
-    serial_port.write(chr(255))
-    serial_port.write(chr(255))
+    serial_port.write(NextComm.encode())
+    serial_port.write((chr(255)).encode())
+    serial_port.write((chr(255)).encode())
+    serial_port.write((chr(255)).encode())
     serial_port.flush()
 
 def read_from_port(ser):
@@ -52,6 +31,21 @@ def read_from_port(ser):
     while True:
       data_str=ser.readline().rstrip()
       handle_data(data_str)
+
+def handle_data(data):
+  print("DataHandler\n")
+#  print(data)
+#  print " ".join(hex(ord(n)) for n in data)
+  data = data.replace(b'\x1d',b'\x0a')
+  try:
+    start = data.index(b'\x02')
+  except ValueError:
+    start = -1
+  if (start != -1):
+    start = start + 1
+    data = data[start:]
+    data = data.decode(encoding='ASCII')
+    ws.send(data)
 
 def handle_status(status):
   if (status['connected']):
@@ -65,7 +59,7 @@ def handle_status(status):
     Nextion_Write("Status.pOnAir.pic=4")
 
   Nextion_Write('Status.ActiveSlot.val=' + str(status['timeslot']))
-  
+
   for mytimeslot in range(0, 15+1):
     if (status['timeslots'][mytimeslot]):
       Nextion_Write('Status.Active' + str(mytimeslot) + '.val=1')
@@ -74,9 +68,8 @@ def handle_status(status):
 
 
 def handle_version(version):
-  print('Status.tVersionUniP.txt=' + str(version))
+  print('Status.tVersionUniP.txt=' + version)
   Nextion_Write('Status.tVersionUniP.txt="' + str(version) + '"')
-
 
 def handle_config_master(config_master):
 
@@ -178,6 +171,7 @@ def handle_log(log):
   print(message['Received Message']['data']);
 
 def on_message(ws, message):
+
   parsed_json = json.loads(message)
   print(parsed_json)
 
@@ -257,6 +251,52 @@ def on_open(ws):
   print("### Connected ###")
   ws.send("\"GetVersion\"")
   ws.send("\"GetConfig\"")
+
+
+parser = argparse.ArgumentParser(description='Nextion Display Control')
+parser.add_argument('--hostname', default='localhost',
+                    help='The host running UniPager, default localhost')
+parser.add_argument('--port', default='8055',
+                    help='The port UniPager is listening, default 8055')
+parser.add_argument('--serialport', dest='serialport', default='/dev/ttyUSB0', type=str,
+                    help='Serial Port the Nextion Display is connected to, default /dev/ttyUSB0')
+parser.add_argument('--serialspeed', dest='serialspeed', default='115200',
+                    help='Serial Port Speed to the Nextion Display, default 115200 Baud')
+parser.add_argument('--config', dest='config', default=None, type=str,
+                    help='Config file')
+parser.add_argument('--debug', dest='debug', action='store_true',
+                    help='Enable debug')
+
+args = parser.parse_args()
+
+DEBUG |= args.debug
+if DEBUG: print("Debug enabled")
+config = args.config
+hostname = args.hostname
+port = args.port
+serialport = args.serialport
+serialspeed = args.serialspeed
+
+if not config is None:
+	try:
+		with open(config) as f:
+			exec(f.read())
+	except FileNotFoundError:
+		print("Configfile %s not found" %config)
+		sys.exit(1)
+	except SyntaxError:
+		print("Syntax error in configfile %s" %config)
+		sys.exit(1)
+
+WebSocketURL = "ws://%s:%s/" %(hostname, port)
+
+NextionPort = serialport
+NextionBaud = serialspeed
+
+
+connected  = False
+serial_port = serial.Serial(NextionPort, NextionBaud, timeout=None)
+
 
 thread = threading.Thread(target=read_from_port, args=(serial_port,))
 thread.start()
