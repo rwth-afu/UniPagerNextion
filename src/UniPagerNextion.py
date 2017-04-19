@@ -22,13 +22,22 @@ serial_port = serial.Serial(NextionPort, NextionBaud, timeout=None)
 
 def handle_data(data):
   print("DataHandler\n")
-  print(data)
-  print("  ")
+#  print(data)
+#  print " ".join(hex(ord(n)) for n in data)
+#  print("  ")
   data = data.replace(b'\x1d',b'\x0a')
-  data = data.decode(encoding='ASCII')
-  print(data)
+  try:
+    start = data.index(b'\x02')
+  except ValueError:
+    start = -1
+  if (start != -1):
+    start = start + 1
+    data = data[start:]
+    data = data.decode(encoding='ASCII')
+    ws.send(data)
 
 def Nextion_Write(NextComm):
+#    print(NextComm)
     serial_port.write(NextComm)
     serial_port.write(chr(255))
     serial_port.write(chr(255))
@@ -78,8 +87,8 @@ def handle_config_master(config_master):
 
   Nextion_Write('SetupDAPNET.TMaster.txt="' + config_master['server'] + '"')
   Nextion_Write('SetupDAPNET.NPort.val=' + str(config_master['port']))
-  Nextion_Write('Status.TCallsign.txt="' + config_master['call'] + '"')
-  Nextion_Write('Status.TAuthKey.txt="' + config_master['auth'] + '"')
+  Nextion_Write('SetupDAPNET.TCallsign.txt="' + config_master['call'] + '"')
+  Nextion_Write('SetupDAPNET.TAuthKey.txt="' + config_master['auth'] + '"')
 
 
 
@@ -96,7 +105,6 @@ def handle_config_transmitter(config_transmitter):
     Nextion_Write('Status.PagerType.val=2')
   elif (config_transmitter=='C9000'):
     Nextion_Write('Status.PagerType.val=3')
-
   elif (config_transmitter=='RFM69'):
     Nextion_Write('Status.PagerType.val=4')
 
@@ -146,22 +154,28 @@ def handle_config_ptt(config_ptt):
 
   if (config_ptt['method']=='Gpio'):
     Nextion_Write('ConfigAudioPTT.AudioPTTType.val=0')
-    Nextion_Write('Status.RadioGPIO.val=1')
-    Nextion_Write('Status.RadioDTR.val=0')
-    Nextion_Write('Status.RadioRTS.val=0')
+    Nextion_Write('ConfigAudioPTT.RadioGPIO.val=1')
+    Nextion_Write('ConfigAudioPTT.RadioDTR.val=0')
+    Nextion_Write('ConfigAudioPTT.RadioRTS.val=0')
 
   elif (config_ptt['method']=='SerialDtr'):
     Nextion_Write('ConfigAudioPTT.AudioPTTType.val=1')
-    Nextion_Write('Status.RadioGPIO.val=0')
-    Nextion_Write('Status.RadioDTR.val=1')
-    Nextion_Write('Status.RadioRTS.val=0')
+    Nextion_Write('ConfigAudioPTT.RadioGPIO.val=0')
+    Nextion_Write('ConfigAudioPTT.RadioDTR.val=1')
+    Nextion_Write('ConfigAudioPTT.RadioRTS.val=0')
 
   elif (config_ptt['method']=='SerialDrts'):
     Nextion_Write('ConfigAudioPTT.AudioPTTType.val=2')
-    Nextion_Write('Status.RadioGPIO.val=0')
-    Nextion_Write('Status.RadioDTR.val=0')
-    Nextion_Write('Status.RadioRTS.val=1')
+    Nextion_Write('ConfigAudioPTT.RadioGPIO.val=0')
+    Nextion_Write('ConfigAudioPTT.RadioDTR.val=0')
+    Nextion_Write('ConfigAudioPTT.RadioRTS.val=1')
 
+def handle_log(log):
+  print("Hier ist ein Loginhalt angekommen")
+  print(log)
+  message=log[1]
+
+  print(message['Received Message']['data']);
 
 def on_message(ws, message):
   parsed_json = json.loads(message)
@@ -226,29 +240,11 @@ def on_message(ws, message):
   except KeyError:
     pass
 
-
-
-
-
-
-#    print(message)
-#    print(parsed_json)
-#    print(parsed_json['Config']['master']['call'])
-#    print(parsed_json['Config']['master']['server'])
-#    if (parsed_json['Status']['transmitting']):
-
-
-
-
-#    if Debug:
-#       print(parsed_json)
-#       print(parsed_json['Config']['master']['call'])
-#       print(parsed_json['Config']['master']['server'])
-#       Nextion_Write('xstr 0, 200, 100, 30, 1, RED, BLACK, 1, 1, 1, \"China\"')
-
-#    if (parsed_json['Status']['transmitting']):
-#          Nextion_Write("p2.pic=5")
-
+  try:
+    log = parsed_json['Log']
+    handle_log(log)
+  except KeyError:
+    pass
 
 
 def on_error(ws, error):
@@ -261,7 +257,6 @@ def on_open(ws):
   print("### Connected ###")
   ws.send("\"GetVersion\"")
   ws.send("\"GetConfig\"")
-
 
 thread = threading.Thread(target=read_from_port, args=(serial_port,))
 thread.start()
