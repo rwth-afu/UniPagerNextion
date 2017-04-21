@@ -19,11 +19,9 @@ def debug(string):
     print(string)
 
 def Nextion_Write(NextComm):
-#    print(NextComm)
+    print(NextComm)
     serial_port.write(NextComm.encode())
-    serial_port.write((chr(255)).encode())
-    serial_port.write((chr(255)).encode())
-    serial_port.write((chr(255)).encode())
+    serial_port.write(bytearray([255, 255, 255]))
     serial_port.flush()
 
 def read_from_port(ser):
@@ -277,7 +275,7 @@ port = args.port
 serialport = args.serialport
 serialspeed = args.serialspeed
 
-if not config is None:
+if not (config is None):
 	try:
 		with open(config) as f:
 			exec(f.read())
