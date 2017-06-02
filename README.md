@@ -7,3 +7,6 @@ On the other side, it opens a configurable serial port (like /dev/ttyUSBx) and t
 
 Status: GUI is done, small cosmetical improvments are still possible. Reading Config from UniPager is done, wiriting config also.
 Missing: Send paging message handling
+
+Dependencies:
+apt-get install python3 python3-websocket python3-serial
