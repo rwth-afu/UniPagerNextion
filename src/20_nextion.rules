@@ -1,0 +1,3 @@
+# Copy this file to /etc/udev/rules.d and change the value according to your USB2Serial device.
+# Command to figure out the data: udevadm info --name=/dev/ttyUSB0 --attribute-walk
+SUBSYSTEM=="tty", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6001", ATTRS{serial}=="32363687", SYMLINK+="ttyNextion"
