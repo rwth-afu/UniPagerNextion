@@ -8,10 +8,10 @@ import sys
 import serial
 
 
-PORT = '/dev/aprs'
+PORT = '/dev/ttyAMA0'
 BAUDCOMM = 9600
 BAUDUPLOAD = 115200
-CHECK_MODEL = 'NX3224T024'
+CHECK_MODEL = 'NX4024T032'
 
 if len(sys.argv) != 2:
 	print 'usage: python %s file_to_upload.tft' % sys.argv[0]
