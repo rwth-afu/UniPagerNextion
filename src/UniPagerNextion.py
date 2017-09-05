@@ -1,5 +1,17 @@
 #!/usr/bin/env python3
 
+# Authors: Ralf Wilke and Moritz Holtz
+# License: GNU General Public license Version 3
+
+# Function: Connect to UniPager via Websocket and send UART commands to a
+# Nextion display. Also receive touch events from Nextion Display and send
+# them to the UniPager
+# https://www.afu.rwth-aachen.de/unipager
+# https://github.com/rwth-afu/UniPager
+
+# Last change: 05.09.2017
+# Last improvment: Added queue display
+
 import websocket
 import json
 import time
@@ -58,9 +70,14 @@ def handle_status(status):
     Nextion_Write("Status.pOnAir.pic=3")
   else:
     Nextion_Write("Status.pOnAir.pic=4")
-
+  
+  # Update Timeslot with every message
   Nextion_Write('Status.ActiveSlot.val=' + str(status['timeslot']))
+  
+  # Update Queue lenght with every message
+  Nextion_Write('Status.NQueue.val=' + str(status['queue']))
 
+  # Update enabled and disabled timeslot display
   for mytimeslot in range(0, 15+1):
     if (status['timeslots'][mytimeslot]):
       Nextion_Write('Status.Active' + str(mytimeslot) + '.val=1')
@@ -213,6 +230,7 @@ def on_message(ws, message):
   except KeyError:
     pass
 
+# since now, no C9000 has ever had a Nextion display, so here just a placeholder
 #  try:
 #    config_c9000 = parsed_json['Config']['c9000']
 #    handle_config_c9000(config_c9000)
