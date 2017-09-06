@@ -9,8 +9,8 @@
 # https://www.afu.rwth-aachen.de/unipager
 # https://github.com/rwth-afu/UniPager
 
-# Last change: 05.09.2017
-# Last improvment: Added queue display
+# Last change: 06.09.2017
+# Last improvment: Color to queue display
 
 import websocket
 import json
@@ -24,8 +24,14 @@ import io
 import struct
 import argparse
 import signal
+import colorsys
 
 DEBUG = False
+
+def RGBTo565(Red, Green, Blue):
+  val = math.floor(Red/8)*2048 + math.floor(Green/4)*32 + math.floor(Blue/8)
+  return val
+
 def debug(string):
   if DEBUG:
     print(string)
@@ -76,6 +82,19 @@ def handle_status(status):
   
   # Update Queue lenght with every message
   Nextion_Write('Status.NQueue.val=' + str(status['queue']))
+  
+  # Update Backgroundcolor
+  #  0 - 30 : Green, ColorCode 2016
+  # 31 - 60 : Yellow, ColorCode 65504
+  #    > 60 : Red, ColorCode 63488
+  # HSV Colorspace: H is Hue = Color. Red is 0, Green is 0.3
+  # Map 0 - 60 to 0 - 0.3
+  hue = status['queue'] / 120
+  if (hue > 0.3):
+    hue = 0.3
+  hsvval= colorsys.hsv_to_rgb(hue, 0, 1)
+  NextionColorCode = RGBTo565(hsvval[0], hsvval[1], hsvval[2])
+  Nextion_Write('Status.NQueue.bco=' + str(NextionColorCode)
 
   # Update enabled and disabled timeslot display
   for mytimeslot in range(0, 15+1):
