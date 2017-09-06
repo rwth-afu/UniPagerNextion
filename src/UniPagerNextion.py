@@ -94,7 +94,7 @@ def handle_status(status):
     hue = 0.3
   hsvval= colorsys.hsv_to_rgb(hue, 0, 1)
   NextionColorCode = RGBTo565(hsvval[0], hsvval[1], hsvval[2])
-  Nextion_Write('Status.NQueue.bco=' + str(NextionColorCode)
+  Nextion_Write('Status.NQueue.bco=' + str(NextionColorCode))
 
   # Update enabled and disabled timeslot display
   for mytimeslot in range(0, 15+1):
