@@ -1,5 +1,8 @@
 #!/bin/bash 
 echo "Must be run as root!"
+echo "Installing dependencies..."
+apt-get install python3 python3-websocket python3-serial
+echo "Installing UniPagerNextion..."
 cp UniPagerNextion.py /usr/local/bin/unipagernextion.py
 chmod 744 /usr/local/bin/unipagernextion.py
 cp unipagernextion.py.example /etc/unipagernextionconfig.py
