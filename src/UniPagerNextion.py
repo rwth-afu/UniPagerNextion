@@ -89,11 +89,22 @@ def handle_status(status):
   #    > 60 : Red, ColorCode 63488
   # HSV Colorspace: H is Hue = Color. Red is 0, Green is 0.3
   # Map 0 - 60 to 0 - 0.3
-  hue = status['queue'] / 120
+  hue = status['queue'] / 180
+#  hue = 30 / 180
+
   if (hue > 0.3):
     hue = 0.3
-  hsvval= colorsys.hsv_to_rgb(hue, 0, 1)
-  NextionColorCode = RGBTo565(hsvval[0], hsvval[1], hsvval[2])
+  if (hue < 0.0):
+    hue = 0.0
+  # Invert value from 0 - 0.3, so 0 is green and 0.3 is red
+  hue = 0.3 - hue
+  print (hue)
+  rgbval = colorsys.hsv_to_rgb(hue, 1, 1)
+  print (rgbval[0])
+  print (rgbval[1])
+  print (rgbval[2])
+  NextionColorCode = RGBTo565(255*rgbval[0], 255*rgbval[1], 255*rgbval[2])
+  print (NextionColorCode)
   Nextion_Write('Status.NQueue.bco=' + str(NextionColorCode))
 
   # Update enabled and disabled timeslot display
