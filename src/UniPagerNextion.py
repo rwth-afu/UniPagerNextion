@@ -37,7 +37,7 @@ def debug(string):
     print(string)
 
 def Nextion_Write(NextComm):
-    print(NextComm)
+    debug(NextComm)
     serial_port.write(NextComm.encode())
     serial_port.write(bytearray([255, 255, 255]))
     serial_port.flush()
@@ -53,7 +53,7 @@ def read_from_port(ser):
 
 def handle_data(data):
   debug("DataHandler\n")
-#  print(data)
+  debug(data)
 #  print " ".join(hex(ord(n)) for n in data)
   data = data.replace(b'\x1d',b'\x0a')
   try:
@@ -98,13 +98,8 @@ def handle_status(status):
     hue = 0.0
   # Invert value from 0 - 0.3, so 0 is green and 0.3 is red
   hue = 0.3 - hue
-  print (hue)
   rgbval = colorsys.hsv_to_rgb(hue, 1, 1)
-  print (rgbval[0])
-  print (rgbval[1])
-  print (rgbval[2])
   NextionColorCode = RGBTo565(255*rgbval[0], 255*rgbval[1], 255*rgbval[2])
-  print (NextionColorCode)
   Nextion_Write('Status.NQueue.bco=' + str(NextionColorCode))
 
   # Update enabled and disabled timeslot display
@@ -155,7 +150,7 @@ def handle_config_transmitter(config_transmitter):
 def handle_config_raspager(config_raspager):
   debug('Handle Raspager Config')
 
-  print(config_raspager)
+  debug(config_raspager)
 
   Nextion_Write('ConfigRasp.nFrequency.val=' + str(config_raspager['freq']))
   Nextion_Write('ConfigRasp.nFrequencyCorr.val=' + str(config_raspager['freq_corr']))
@@ -182,7 +177,7 @@ def handle_config_audio(config_audio):
     Nextion_Write('ConfigAudio.cAudioInverted.val=0')
 
 def handle_config_ptt(config_ptt):
-  print('Handle PTT Config')
+  debug('Handle PTT Config')
 
   Nextion_Write('ConfigAudioPTT.nGPIO.val=' + str(config_ptt['gpio_pin']))
 
@@ -218,7 +213,7 @@ def handle_log(log):
 def on_message(ws, message):
 
   parsed_json = json.loads(message)
-  print(parsed_json)
+  debug(parsed_json)
 
   try:
     status = parsed_json['Status']
