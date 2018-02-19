@@ -51,6 +51,28 @@ def read_from_port(ser):
       data_str=ser.readline().rstrip()
       handle_data(data_str)
 
+def handle_queue(queue_length):
+  Nextion_Write('Status.NQueue.val=' + str(queue_length))
+
+  # Update Backgroundcolor
+  #  0 - 30 : Green, ColorCode 2016
+  # 31 - 60 : Yellow, ColorCode 65504
+  #    > 60 : Red, ColorCode 63488
+  # HSV Colorspace: H is Hue = Color. Red is 0, Green is 0.3
+  # Map 0 - 60 to 0 - 0.3
+  hue = queue_length / 180
+#  hue = 30 / 180
+
+  if (hue > 0.3):
+    hue = 0.3
+  if (hue < 0.0):
+    hue = 0.0
+  # Invert value from 0 - 0.3, so 0 is green and 0.3 is red
+  hue = 0.3 - hue
+  rgbval = colorsys.hsv_to_rgb(hue, 1, 1)
+  NextionColorCode = RGBTo565(255*rgbval[0], 255*rgbval[1], 255*rgbval[2])
+  Nextion_Write('Status.NQueue.bco=' + str(NextionColorCode))
+
 def handle_data(data):
   debug("DataHandler\n")
   debug(data)
@@ -81,26 +103,7 @@ def handle_status(status):
   Nextion_Write('Status.ActiveSlot.val=' + str(status['timeslot']))
   
   # Update Queue lenght with every message
-  Nextion_Write('Status.NQueue.val=' + str(status['queue']))
-  
-  # Update Backgroundcolor
-  #  0 - 30 : Green, ColorCode 2016
-  # 31 - 60 : Yellow, ColorCode 65504
-  #    > 60 : Red, ColorCode 63488
-  # HSV Colorspace: H is Hue = Color. Red is 0, Green is 0.3
-  # Map 0 - 60 to 0 - 0.3
-  hue = status['queue'] / 180
-#  hue = 30 / 180
-
-  if (hue > 0.3):
-    hue = 0.3
-  if (hue < 0.0):
-    hue = 0.0
-  # Invert value from 0 - 0.3, so 0 is green and 0.3 is red
-  hue = 0.3 - hue
-  rgbval = colorsys.hsv_to_rgb(hue, 1, 1)
-  NextionColorCode = RGBTo565(255*rgbval[0], 255*rgbval[1], 255*rgbval[2])
-  Nextion_Write('Status.NQueue.bco=' + str(NextionColorCode))
+  handle_queue(status['queue'])
 
   # Update enabled and disabled timeslot display
   for mytimeslot in range(0, 15+1):
@@ -110,12 +113,30 @@ def handle_status(status):
       Nextion_Write('Status.Active' + str(mytimeslot) + '.val=0')
 
 
+def handle_statusupdate(statusupdate):
+  if statusupdate[0] == 'connected':
+    if statusupdate[1]:
+      Nextion_Write("Status.pConnected.pic=1")
+    else:
+      Nextion_Write("Status.pConnected.pic=2")
+  elif statusupdate[0] == 'transmitting':
+    if statusupdate[1]:
+      Nextion_Write("Status.pOnAir.pic=3")
+    else:
+      Nextion_Write("Status.pOnAir.pic=4")
+  elif statusupdate[0] == 'queue':
+    # Update queue
+    handle_queue(statusupdate[1])
+  elif statusupdate[0] == 'timeslot':
+    # Update Timeslot
+    Nextion_Write('Status.ActiveSlot.val=' + str(statusupdate[1]))
+
+
 def handle_version(version):
   debug('Status.tVersionUniP.txt=' + version)
   Nextion_Write('Status.tVersionUniP.txt="' + str(version) + '"')
 
 def handle_config_master(config_master):
-
   debug('Handle Master Config')
   Nextion_Write('Status.TMaster.txt="' + config_master['server'] + '"')
   Nextion_Write('Status.NPort.val=' + str(config_master['port']))
@@ -218,6 +239,13 @@ def on_message(ws, message):
   try:
     status = parsed_json['Status']
     handle_status(status)
+  except KeyError:
+    pass
+
+
+  try:
+    statusupdate = parsed_json['StatusUpdate']
+    handle_statusupdate(statusupdate)
   except KeyError:
     pass
 
