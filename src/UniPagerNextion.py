@@ -138,9 +138,10 @@ def handle_statusupdate(statusupdate):
       else:
         Nextion_Write('Status.Active' + str(mytimeslot) + '.val=0')
   elif statusupdate[0] == 'master':
-    Nextion_Write('Status.TMaster.txt="' + statusupdate[1] + '"')
-
-
+    if statusupdate[1] != None:
+      Nextion_Write('Status.TMaster.txt="' + statusupdate[1] + '"')
+    else:
+      Nextion_Write('Status.TMaster.txt=""')
 
 def handle_version(version):
   debug('Status.tVersionUniP.txt=' + version)
@@ -243,7 +244,15 @@ def handle_log(log):
 
 def on_message(ws, message):
 
-  parsed_json = json.loads(message)
+  if message == "Restart":
+    return
+
+  try:
+    parsed_json = json.loads(message)
+  except ValueError as e:
+    debug("JSON parse error")
+    return
+
   debug(parsed_json)
 
   try:
