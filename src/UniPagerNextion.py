@@ -130,6 +130,16 @@ def handle_statusupdate(statusupdate):
   elif statusupdate[0] == 'timeslot':
     # Update Timeslot
     Nextion_Write('Status.ActiveSlot.val=' + str(statusupdate[1]))
+  elif statusupdate[0] == 'timeslots':
+  # Update enabled and disabled timeslot display
+    for mytimeslot in range(0, 15+1):
+      if (statusupdate[1][mytimeslot]):
+        Nextion_Write('Status.Active' + str(mytimeslot) + '.val=1')
+      else:
+        Nextion_Write('Status.Active' + str(mytimeslot) + '.val=0')
+  elif statusupdate[0] == 'master':
+    Nextion_Write('Status.TMaster.txt="' + statusupdate[1] + '"')
+
 
 
 def handle_version(version):
@@ -320,6 +330,7 @@ def on_open(ws):
   print("### Connected ###")
   ws.send("\"GetVersion\"")
   ws.send("\"GetConfig\"")
+  ws.send("\"GetStatus\"")
 
 
 parser = argparse.ArgumentParser(description='Nextion Display Control')
