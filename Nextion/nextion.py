@@ -8,7 +8,8 @@ import sys
 import serial
 
 
-PORT = '/dev/ttyAMA0'
+#PORT = '/dev/ttyAMA0'
+PORT = '/dev/ttyUSB0'
 BAUDCOMM = 9600
 BAUDUPLOAD = 115200
 CHECK_MODEL = 'NX4024T032'

@@ -9,8 +9,8 @@
 # https://www.afu.rwth-aachen.de/unipager
 # https://github.com/rwth-afu/UniPager
 
-# Last change: 06.09.2017
-# Last improvment: Color to queue display
+# Last change: 20.02.2018
+# Last improvment: Implement StatusUpdate and RegEx for log line
 
 import websocket
 import json
@@ -25,6 +25,7 @@ import struct
 import argparse
 import signal
 import colorsys
+import re
 
 DEBUG = False
 
@@ -147,6 +148,7 @@ def handle_version(version):
   debug('Status.tVersionUniP.txt=' + version)
   Nextion_Write('Status.tVersionUniP.txt="' + str(version) + '"')
 
+
 def handle_config_master(config_master):
   debug('Handle Master Config')
   Nextion_Write('Status.TMaster.txt="' + config_master['server'] + '"')
@@ -157,7 +159,6 @@ def handle_config_master(config_master):
   Nextion_Write('SetupDAPNET.NPort.val=' + str(config_master['port']))
   Nextion_Write('SetupDAPNET.TCallsign.txt="' + config_master['call'] + '"')
   Nextion_Write('SetupDAPNET.TAuthKey.txt="' + config_master['auth'] + '"')
-
 
 
 def handle_config_transmitter(config_transmitter):
@@ -208,6 +209,7 @@ def handle_config_audio(config_audio):
   else:
     Nextion_Write('ConfigAudio.cAudioInverted.val=0')
 
+
 def handle_config_ptt(config_ptt):
   debug('Handle PTT Config')
 
@@ -238,9 +240,23 @@ def handle_config_ptt(config_ptt):
     Nextion_Write('ConfigAudioPTT.RadioDTR.val=0')
     Nextion_Write('ConfigAudioPTT.RadioRTS.val=1')
 
+
 def handle_log(log):
   debug("Hier ist ein Loginhalt angekommen")
   debug(log[1])
+
+# Example:
+# {"Log":[3,"Received Message { id: 135, mtype: AlphaNum, speed: Baud(1200), addr: 165856, func: Func3, data: \"XTIME=0921200218XTIME=0921200218\" }"]}
+# Regex: '.*data: (.*) }.*'
+  dataexpression = '.*data: (.*) \}.*'
+  m = re.search(dataexpression, log[1])
+  if m:
+    log_data = m.group(1)
+    log_data_stripped = log_data.strip('"')
+    log_data_stripped_cropped = log_data_stripped[:96]
+    debug (log_data_stripped_cropped)
+    Nextion_Write('Status.LogLine1.txt="' + log_data_stripped_cropped + '"')
+
 
 def on_message(ws, message):
 
