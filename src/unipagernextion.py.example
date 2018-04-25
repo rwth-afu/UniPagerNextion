@@ -15,3 +15,6 @@
 # Minimum Backlight, default 10, value from 0 to 100
 #minbacklight = 10
 
+# Maximum Backlight, default 100, value from 0 to 100
+#maxbacklight = 100
+

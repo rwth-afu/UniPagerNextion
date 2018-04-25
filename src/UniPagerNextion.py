@@ -369,6 +369,8 @@ parser.add_argument('--serialspeed', dest='serialspeed', default='115200',
                     help='Serial Port Speed to the Nextion Display, default 115200 Baud')
 parser.add_argument('--minbacklight', dest='minbacklight', default='10',
                     help='Minimum Percentage of backlight')
+parser.add_argument('--maxbacklight', dest='maxbacklight', default='100',
+                    help='Maximum Percentage of backlight')
 parser.add_argument('--config', dest='config', default=None, type=str,
                     help='Config file')
 parser.add_argument('--debug', dest='debug', action='store_true',
@@ -384,6 +386,7 @@ port = args.port
 serialport = args.serialport
 serialspeed = args.serialspeed
 minbacklight = args.minbacklight
+maxbacklight = args.maxbacklight
 
 if not (config is None):
 	try:
@@ -401,6 +404,12 @@ WebSocketURL = "ws://%s:%s/" %(hostname, port)
 NextionPort = serialport
 NextionBaud = serialspeed
 
+if int(minbacklight) < 0 or int(minbacklight) > 100:
+	print('Minimum Backlight setting is NOT between 0 and 100');
+if int(maxbacklight) < 0 or int(maxbacklight) > 100:
+        print('Maximum Backlight setting is NOT between 0 and 100');
+if int(maxbacklight) < int(minbacklight):
+	print('Maximum Backlight setting is lower than minimum Backlight setting. This does not make sense!')
 
 connected  = False
 serial_port = serial.Serial(NextionPort, NextionBaud, timeout=None)
@@ -409,8 +418,14 @@ serial_port = serial.Serial(NextionPort, NextionBaud, timeout=None)
 thread = threading.Thread(target=read_from_port, args=(serial_port,))
 thread.start()
 
-# Set minimum Backloght
+
+# Set minimum and maximum backlight
 Nextion_Write('Status.DimMinimum.val=' + str(minbacklight))
+Nextion_Write('Status.DimMaximum.val=' + str(maxbacklight))
+
+# Set dim value of display to minimum value
+Nextion_Write('dim=Status.DimMaximum.val')
+Nextion_Write('Status.DimTimeout.en=1')
 
 websocket.enableTrace(False)
 ws = websocket.WebSocketApp(WebSocketURL,
