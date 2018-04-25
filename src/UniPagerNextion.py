@@ -367,6 +367,8 @@ parser.add_argument('--serialport', dest='serialport', default='/dev/ttyUSB0', t
                     help='Serial Port the Nextion Display is connected to, default /dev/ttyUSB0')
 parser.add_argument('--serialspeed', dest='serialspeed', default='115200',
                     help='Serial Port Speed to the Nextion Display, default 115200 Baud')
+parser.add_argument('--minbacklight', dest='minbacklight', default='10',
+                    help='Minimum Percentage of backlight')
 parser.add_argument('--config', dest='config', default=None, type=str,
                     help='Config file')
 parser.add_argument('--debug', dest='debug', action='store_true',
@@ -381,6 +383,7 @@ hostname = args.hostname
 port = args.port
 serialport = args.serialport
 serialspeed = args.serialspeed
+minbacklight = args.minbacklight
 
 if not (config is None):
 	try:
@@ -406,6 +409,8 @@ serial_port = serial.Serial(NextionPort, NextionBaud, timeout=None)
 thread = threading.Thread(target=read_from_port, args=(serial_port,))
 thread.start()
 
+# Set minimum Backloght
+Nextion_Write('Status.DimMinimum.val=' + str(minbacklight))
 
 websocket.enableTrace(False)
 ws = websocket.WebSocketApp(WebSocketURL,

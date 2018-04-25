@@ -11,3 +11,7 @@
 
 # Serial Seppd to the Nextion Display, default 115200
 #serialspeed = 115200
+
+# Minimum Backlight, default 10, value from 0 to 100
+#minbacklight = 10
+
