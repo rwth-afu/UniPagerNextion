@@ -1,6 +1,7 @@
 [Unit]
 Description=UniPager Nextion LCD display controller
 After=network.target
+Wants=network-online.target
 
 [Service]
 ExecStart=/usr/local/bin/unipagernextion.py --config /etc/unipagernextionconfig.py
