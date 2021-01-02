@@ -257,6 +257,23 @@ def handle_log(log):
     debug (log_data_stripped_cropped)
     Nextion_Write('Status.LogLine1.txt="' + log_data_stripped_cropped + '"')
 
+def get_temperature(OW_SENSOR_PATH):
+  """ get the temperature from the OW sensor """
+  with open(OW_SENSOR_PATH, 'r') as f:
+    lines = f.readlines()
+    retval = lines[0].split(' ')
+    retval = int(retval[1], 16) << 8 | int(retval[0], 16)
+    retval /= 16.
+    return retval
+  raise Exception("Could not open OW sensor file")
+
+def temperature_gathering():
+  while true:
+    temptx = get_temperature('/sys/bus/w1/devices/' + temptx1w + '/w1_slave')
+    temppowersuppy = get_temperature('/sys/bus/w1/devices/' + temppowersuppy1w + '/w1_slave')
+    Nextion_Write('Status.TempTx.val="' + "{:.1f}".format(temptx)+'"')
+    Nextion_Write('Status.TempSupply.val="' + "{:.1f}".format(temppowersuppy)+'"')
+    sleep(5)
 
 def on_message(ws, message):
 
@@ -371,6 +388,10 @@ parser.add_argument('--minbacklight', dest='minbacklight', default='10',
                     help='Minimum Percentage of backlight')
 parser.add_argument('--maxbacklight', dest='maxbacklight', default='100',
                     help='Maximum Percentage of backlight')
+parser.add_argument('--1WireTempIDTX', dest='temptx1w', default='',
+                    help='Complete ID of 1Wire bus sensor ID in /sys/bus/w1/devices for TX')
+parser.add_argument('--1WireTempIDPowerSupply', dest='temppowersuppy1w', default='',
+                    help='Complete ID of 1Wire bus sensor ID in /sys/bus/w1/devices for Power Supply')
 parser.add_argument('--config', dest='config', default=None, type=str,
                     help='Config file')
 parser.add_argument('--debug', dest='debug', action='store_true',
@@ -387,6 +408,8 @@ serialport = args.serialport
 serialspeed = args.serialspeed
 minbacklight = args.minbacklight
 maxbacklight = args.maxbacklight
+temptx1w = args.temptx1w
+temppowersuppy1w = args.temppowersuppy1w
 
 if not (config is None):
 	try:
@@ -417,6 +440,9 @@ serial_port = serial.Serial(NextionPort, NextionBaud, timeout=None)
 
 thread = threading.Thread(target=read_from_port, args=(serial_port,))
 thread.start()
+
+threadtemp = threading.Thread(target=temperature_gathering)
+threadtemp.start()
 
 
 # Set minimum and maximum backlight

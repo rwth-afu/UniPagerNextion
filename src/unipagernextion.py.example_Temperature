@@ -1,0 +1,25 @@
+# The config is just a python script which will be included
+
+# The hostname, default localhost
+#hostname = "localhost"
+
+# The port, default 8055
+#port = 8055
+
+# Serial Port to the Nextion Display, default "/dev/ttyUSB0"
+#serialport = "/dev/ttyUSB0"
+
+# Serial Seppd to the Nextion Display, default 115200
+#serialspeed = 115200
+
+# Minimum Backlight, default 10, value from 0 to 100
+#minbacklight = 10
+
+# Maximum Backlight, default 100, value from 0 to 100
+#maxbacklight = 100
+
+# Complete ID of 1Wire bus sensor ID in /sys/bus/w1/devices for TX
+#temptx1w = ''
+
+# Complete ID of 1Wire bus sensor ID in /sys/bus/w1/devices for Power Supply
+#temppowersuppy1w = ''
