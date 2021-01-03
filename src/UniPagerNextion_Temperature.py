@@ -301,33 +301,26 @@ def setTempDisplayVisibilityandDescription(visibility):
 
 def statusdisplay():
   while True:
-    ifcounter = 0
+    iftext = ''
+    iptext = ''
     # Send IP config to Display
     for iface in netifaces.interfaces():
       if iface == 'lo':
         continue
-      ifcounter = ifcounter + 1
       netifaces.ifaddresses(iface)
       ip = netifaces.ifaddresses(iface)[netifaces.AF_INET][0]['addr']
       debug(iface + ':' + ip)
-      Nextion_Write('vis Iface' + str(ifcounter) + ',1')
-      Nextion_Write('vis IP' + str(ifcounter) + ',1')
-      Nextion_Write('OSStatus.IP' + str(ifcounter) + '.txt="' + ip + '"')
-      Nextion_Write('OSStatus.Iface' + str(ifcounter) + '.txt="' + iface + '"')
-      Nextion_Write('OSStatus.If' + str(ifcounter) + 'enabled.val=1')
-
-    # Disable visibility for non existent interfaces, max 3
-    for i in range(ifcounter,3):
-      Nextion_Write('vis Iface' + str(i+1) + ',0')
-      Nextion_Write('vis IP' + str(i+1 ) + ',0')
-      Nextion_Write('OSStatus.If' + str(i+1) + 'enabled.val=0')
+      iftext = iftext + iface + '\r\n'
+      iptext = iptext + ip + '\r\n'
+    Nextion_Write('OSStatus.IP.txt="' + iptext + '"')
+    Nextion_Write('OSStatus.Iface.txt="' + iftext + '"')
 
     # Send Disk usage to Display
     total, used, free = shutil.disk_usage("/")
     Nextion_Write('OSStatus.DiskSpace.txt="' +
-                  'Total: ' + "{:.1f}".format(total // (2**30)) + ' GiB  ' +
-                  'Used: '  + "{:.1f}".format(used // (2 ** 30)) + ' GiB  ' +
-                  'Free: '  + "{:.1f}".format(free // (2 ** 30)) + ' GiB' +
+                  'Total: ' + "{:.1f}".format(total // (2 ** 30)) + ' GiB  ' +
+                  'Used: '  + "{:.1f}".format(used  // (2 ** 30)) + ' GiB  ' +
+                  'Free: '  + "{:.1f}".format(free  // (2 ** 30)) + ' GiB' +
                   '"')
     Nextion_Write('OSStatus.DiskSpaceBar.val=' + str(round(used/total*100)))
     time.sleep(10)
