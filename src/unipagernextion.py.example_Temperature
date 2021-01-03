@@ -7,19 +7,28 @@
 #port = 8055
 
 # Serial Port to the Nextion Display, default "/dev/ttyUSB0"
-#serialport = "/dev/ttyUSB0"
+serialport = "/dev/ttyAMA0"
 
 # Serial Seppd to the Nextion Display, default 115200
 #serialspeed = 115200
 
 # Minimum Backlight, default 10, value from 0 to 100
-#minbacklight = 10
+minbacklight = 90
 
 # Maximum Backlight, default 100, value from 0 to 100
 #maxbacklight = 100
 
-# Complete ID of 1Wire bus sensor ID in /sys/bus/w1/devices for TX
-#temptx1w = ''
+# Enable Temperature Display. default False
+tempdisplay = False
 
-# Complete ID of 1Wire bus sensor ID in /sys/bus/w1/devices for Power Supply
-#temppowersuppy1w = ''
+# Complete ID of 1Wire bus sensor ID in /sys/bus/w1/devices for Temp 1, e.g. 28-01142f2a466b
+temp1id = '28-02131931f9aa'
+
+# Description to display for sensor Temp 1 on display, multiline with \r\n, e.g '1. Line\r\n2.Line'
+temp1desc = 'TX'
+
+# Complete ID of 1Wire bus sensor ID in /sys/bus/w1/devices for Temp 2, e.g. 28-01142f2a466b
+temp2id = '28-01142f2a466b'
+
+# Description to display for sensor Temp 2 on display,  multiline with \r\n, e.g '1. Line\r\n2.Line'
+temp2desc = 'Power\r\nSupply'

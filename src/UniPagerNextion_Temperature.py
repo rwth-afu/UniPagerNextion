@@ -26,8 +26,12 @@ import argparse
 import signal
 import colorsys
 import re
+import netifaces
+import shutil
 
 DEBUG = False
+mutex = threading.Lock()
+
 
 def RGBTo565(Red, Green, Blue):
   val = math.floor(Red/8)*2048 + math.floor(Green/4)*32 + math.floor(Blue/8)
@@ -39,9 +43,13 @@ def debug(string):
 
 def Nextion_Write(NextComm):
     debug(NextComm)
-    serial_port.write(NextComm.encode())
+    # For Hex Debugging of Data set to Display
+    #debug(':'.join(hex(ord(x))[2:] for x in NextComm))
+    mutex.acquire()
+    serial_port.write(NextComm.encode("iso_8859_1"))
     serial_port.write(bytearray([255, 255, 255]))
     serial_port.flush()
+    mutex.release()
 
 def read_from_port(ser):
   global connected
@@ -267,13 +275,62 @@ def get_temperature(OW_SENSOR_PATH):
     return retval
   raise Exception("Could not open OW sensor file")
 
-def temperature_gathering():
-  while true:
-    temptx = get_temperature('/sys/bus/w1/devices/' + temptx1w + '/w1_slave')
-    temppowersuppy = get_temperature('/sys/bus/w1/devices/' + temppowersuppy1w + '/w1_slave')
-    Nextion_Write('Status.TempTx.val="' + "{:.1f}".format(temptx)+'"')
-    Nextion_Write('Status.TempSupply.val="' + "{:.1f}".format(temppowersuppy)+'"')
-    sleep(5)
+def temperature_display():
+  while True:
+    temp1 = get_temperature('/sys/bus/w1/devices/' + temp1id + '/w1_slave')
+    temp2 = get_temperature('/sys/bus/w1/devices/' + temp2id + '/w1_slave')
+    Nextion_Write('Status.Temp1Val.txt="' + "{:.1f}".format(temp1) + '°C"')
+    Nextion_Write('Status.Temp2Val.txt="' + "{:.1f}".format(temp2) + '°C"')
+    time.sleep(5)
+
+def setTempDisplayVisibilityandDescription(visibility):
+  if visibility:
+    Nextion_Write('Status.Temp1Txt.txt="' + temp1desc + '"')
+    Nextion_Write('Status.Temp2Txt.txt="' + temp2desc + '"')
+    Nextion_Write('vis Temp1Txt,1')
+    Nextion_Write('vis Temp1Val,1')
+    Nextion_Write('vis Temp2Txt,1')
+    Nextion_Write('vis Temp2Val,1')
+    Nextion_Write('Status.TempEnabled.val=1')
+  else:
+    Nextion_Write('vis Temp1Txt,0')
+    Nextion_Write('vis Temp1Val,0')
+    Nextion_Write('vis Temp2Txt,0')
+    Nextion_Write('vis Temp2Val,0')
+    Nextion_Write('Status.TempEnabled.val=0')
+
+def statusdisplay():
+  while True:
+    ifcounter = 0
+    # Send IP config to Display
+    for iface in netifaces.interfaces():
+      if iface == 'lo':
+        continue
+      ifcounter = ifcounter + 1
+      netifaces.ifaddresses(iface)
+      ip = netifaces.ifaddresses(iface)[netifaces.AF_INET][0]['addr']
+      debug(iface + ':' + ip)
+      Nextion_Write('vis Iface' + str(ifcounter) + ',1')
+      Nextion_Write('vis IP' + str(ifcounter) + ',1')
+      Nextion_Write('OSStatus.IP' + str(ifcounter) + '.txt="' + ip + '"')
+      Nextion_Write('OSStatus.Iface' + str(ifcounter) + '.txt="' + iface + '"')
+      Nextion_Write('OSStatus.If' + str(ifcounter) + 'enabled.val=1')
+
+    # Disable visibility for non existent interfaces, max 3
+    for i in range(ifcounter,3):
+      Nextion_Write('vis Iface' + str(i+1) + ',0')
+      Nextion_Write('vis IP' + str(i+1 ) + ',0')
+      Nextion_Write('OSStatus.If' + str(i+1) + 'enabled.val=0')
+
+    # Send Disk usage to Display
+    total, used, free = shutil.disk_usage("/")
+    Nextion_Write('OSStatus.DiskSpace.txt="' +
+                  'Total: ' + "{:.1f}".format(total // (2**30)) + ' GiB  ' +
+                  'Used: '  + "{:.1f}".format(used // (2 ** 30)) + ' GiB  ' +
+                  'Free: '  + "{:.1f}".format(free // (2 ** 30)) + ' GiB' +
+                  '"')
+    Nextion_Write('OSStatus.DiskSpaceBar.val=' + str(round(used/total*100)))
+    time.sleep(10)
 
 def on_message(ws, message):
 
@@ -388,10 +445,16 @@ parser.add_argument('--minbacklight', dest='minbacklight', default='10',
                     help='Minimum Percentage of backlight')
 parser.add_argument('--maxbacklight', dest='maxbacklight', default='100',
                     help='Maximum Percentage of backlight')
-parser.add_argument('--1WireTempIDTX', dest='temptx1w', default='',
-                    help='Complete ID of 1Wire bus sensor ID in /sys/bus/w1/devices for TX')
-parser.add_argument('--1WireTempIDPowerSupply', dest='temppowersuppy1w', default='',
-                    help='Complete ID of 1Wire bus sensor ID in /sys/bus/w1/devices for Power Supply')
+parser.add_argument('--tempdisplay', dest='tempdisplay', default=False,
+                    help='Enable temperature Display', action='store_true')
+parser.add_argument('--Temp1ID', dest='temp1id', default='',
+                    help='Complete ID of 1Wire bus sensor ID in /sys/bus/w1/devices for Temp Sensor 1')
+parser.add_argument('--Temp1Desc', dest='temp1desc', default='',
+                    help='Description to display for sensor Temp 1 on display, multiline with \n')
+parser.add_argument('--Temp2ID', dest='temp2id', default='',
+                    help='Complete ID of 1Wire bus sensor ID in /sys/bus/w1/devices for Temp Sensor 2')
+parser.add_argument('--Temp2Desc', dest='temp2desc', default='',
+                    help='Description to display for sensor Temp 2 on display, multiline with \n')
 parser.add_argument('--config', dest='config', default=None, type=str,
                     help='Config file')
 parser.add_argument('--debug', dest='debug', action='store_true',
@@ -408,8 +471,11 @@ serialport = args.serialport
 serialspeed = args.serialspeed
 minbacklight = args.minbacklight
 maxbacklight = args.maxbacklight
-temptx1w = args.temptx1w
-temppowersuppy1w = args.temppowersuppy1w
+tempdisplay = args.tempdisplay
+temp1id = args.temp1id
+temp1desc = args.temp1desc
+temp2id = args.temp2id
+temp2desc = args.temp2desc
 
 if not (config is None):
 	try:
@@ -437,13 +503,12 @@ if int(maxbacklight) < int(minbacklight):
 connected  = False
 serial_port = serial.Serial(NextionPort, NextionBaud, timeout=None)
 
+setTempDisplayVisibilityandDescription(tempdisplay)
 
-thread = threading.Thread(target=read_from_port, args=(serial_port,))
-thread.start()
 
-threadtemp = threading.Thread(target=temperature_gathering)
-threadtemp.start()
-
+threadreadport = threading.Thread(target=read_from_port, args=(serial_port,)).start()
+threadtemp = threading.Thread(target=temperature_display).start()
+threatstatus = threading.Thread(target=statusdisplay).start()
 
 # Set minimum and maximum backlight
 Nextion_Write('Status.DimMinimum.val=' + str(minbacklight))
